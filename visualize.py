@@ -1,19 +1,17 @@
 import pickle
-import shapley
 import matplotlib.pyplot as plt
 from os import listdir
 from os.path import isfile, join
 from shapely.geometry import Polygon, MultiLineString
-from utils import translateToOrig, center, translateToPoly, scalePoly, scaleUnitNorm
+from utils import translateToOrig, center, rotateRef
 import shapely.affinity as aff
 
-fig, ((ax1, ax2, ax3), (ax4, ax5, ax6)) = plt.subplots(nrows=2, ncols=3)
-fig.suptitle('Element Transformation')
 
-mypath = 'C:/Users/user/Desktop/shapProj/pickles/'
+
+mypath = './pickles/'
 
 onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
-for file in onlyfiles[:1]:
+for file in onlyfiles[20:30]:
     with open(mypath + file, 'rb') as handle:
         mulitLine = pickle.load(handle)
         if mulitLine is None:
@@ -25,6 +23,10 @@ for file in onlyfiles[:1]:
             points.append(c)
     if len(points) < 3:
         continue
+
+    
+    fig, ((ax1, ax2, ax3), (ax4, ax5, ax6)) = plt.subplots(nrows=2, ncols=3)
+    fig.suptitle('Element Transformation')
 
     # create polygon out of element coordinates
     elmnt = Polygon(points)
@@ -38,7 +40,7 @@ for file in onlyfiles[:1]:
 
     # traslate element to origin from the MRR center
     elmntTrans = translateToOrig(elmnt)
-
+    #elmntTrans = rotateRef(elmntTrans)
     # coords of the element itself
     x, y = elmnt.exterior.xy
 
@@ -58,4 +60,3 @@ for file in onlyfiles[:1]:
     ax2.plot(cx, cy, marker='.')
     ax2.set_title('Translated (MRR center)')
     plt.show()
-

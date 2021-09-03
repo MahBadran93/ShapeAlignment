@@ -2,6 +2,7 @@ import shapely.geometry as geom
 import shapely.affinity as aff
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 
 def center (poly):
 
@@ -26,7 +27,7 @@ def translateToOrig (poly, origin=(0, 0)):
     return trnsltPoly
 
 
-def translateToPoly(poly1, poly2):
+def translateToPoly (poly1, poly2):
     # Find centroid of both polygons
     centroidOrigin = poly1.centroid.xy
     centroidTotranslate = poly2.centroid.xy
@@ -44,6 +45,25 @@ def translateToPoly(poly1, poly2):
     translated_Poly = aff.rotate(translated_Poly, 90)
 
     return translated_Poly
+
+def rotateRef (poly):
+    centroid = center(poly)
+    cntrdNorm = np.sqrt(centroid[0]**2 + centroid[1]**2)
+    #hetaRad =  centroid[0] / cntrdNorm 
+    #thetaRad = math.degrees(thetaRad)
+    val = centroid[1] / cntrdNorm
+    theta = np.arcsin(val)
+    theta = math.degrees(theta)
+
+    print('theat',theta)
+    rotAngle = 270 - theta 
+    rotPoly = aff.rotate(poly, rotAngle)
+    return rotPoly
+
+
+
+
+
 
 def scalePoly(poly, factor, rltvPoint= (2.0, 2.0)):
     x, y = poly.exterior.xy
