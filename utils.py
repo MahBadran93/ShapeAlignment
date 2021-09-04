@@ -3,6 +3,7 @@ import shapely.affinity as aff
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+import cv2
 
 def center (poly):
 
@@ -11,10 +12,14 @@ def center (poly):
     return centerPoint
 
 def translateToOrig (poly, origin=(0, 0)):
-
+    x, y = poly.exterior.xy
+    s = np.asarray([x, y])
     # Find the minimum rotation rectangle
-    polyMRR = poly.minimum_rotated_rectangle
-
+    #polyMRR = poly.minimum_rotated_rectangle
+    #polyMRR = cv2.minAreaRect(s)
+    #polyMRR = cv2.boxPoints(polyMRR)
+    #polyMRR = np.int0(polyMRR)
+    polyMRR = poly.envelope
     # Find Center of MRR
     centerp = center(polyMRR)
 
@@ -26,7 +31,65 @@ def translateToOrig (poly, origin=(0, 0)):
 
     return trnsltPoly
 
+def rotateRef (poly, baseV=(1, 0)):
 
+    # center of the polygon after translation to origin: Centroid 
+    centroid = center(poly)
+    print(centroid)
+    # Using arsin 
+    '''
+    cntrdNorm = np.sqrt(centroid[0]**2 + centroid[1]**2)
+    #thetaRad =  centroid[0] / cntrdNorm 
+    #thetaRad = math.degrees(thetaRad)
+    val = centroid[1] / cntrdNorm
+    angle = np.arcsin(val)
+    angle = math.degrees(angle)
+    
+    '''
+    
+    
+    
+     # Using cross product 
+    dotP = (centroid[0] * baseV[0]) + (centroid[1] * baseV[1]) 
+    normCntrd = np.sqrt(centroid[0]**2 + centroid[1]**2)
+    normBaseV = np.sqrt(baseV[0]**2 + baseV[1]**2)
+    val = dotP / (normCntrd * normBaseV)
+    angle = math.acos(val)
+    angle = math.degrees(angle)
+    
+   
+    if centroid[1] >= 0:
+        rotAngle = 270.0 - angle
+    elif centroid[1] < 0 and centroid[0] < 0:
+        rotAngle = (270.0 + angle) - 360.0
+    elif centroid[1] < 0 and centroid[0] > 0:
+        rotAngle = 270.0 + (180.0 - angle)
+
+
+    '''
+    if angle < 270.0 or angle == 270.0:
+        rotAngle = 270.0 - angle
+        print(rotAngle)
+    else: 
+        rotAngle = (270.0 + angle) - 360.0
+        print('After', rotAngle)
+    '''
+    
+
+    rotPoly = aff.rotate(poly, rotAngle)
+
+    return rotPoly
+
+def scale (poly):
+    xFactor = 1
+    (minx, miny, maxx, maxy) = poly.bounds 
+    polyHgt = maxy - miny
+    polywdth = maxx - minx 
+
+    yFactor = 10 / polyHgt
+    return aff.scale(poly,xfact=xFactor, yfact=yFactor)
+
+'''
 def translateToPoly (poly1, poly2):
     # Find centroid of both polygons
     centroidOrigin = poly1.centroid.xy
@@ -46,60 +109,7 @@ def translateToPoly (poly1, poly2):
 
     return translated_Poly
 
-def rotateRef (poly, baseV=(1, 0)):
-
-    # center of the polygon after translation to origin: Centroid 
-    centroid = center(poly)
-
-    # Using arsin 
-    '''
-    cntrdNorm = np.sqrt(centroid[0]**2 + centroid[1]**2)
-    #thetaRad =  centroid[0] / cntrdNorm 
-    #thetaRad = math.degrees(thetaRad)
-    val = centroid[1] / cntrdNorm
-    angle = np.arcsin(val)
-    print('before',angle)    
-    angle = math.degrees(angle)
-    '''
-    
-    
-
-    
-    # Using cross product 
-    dotP = (centroid[0] * baseV[0]) + (centroid[1] * baseV[1]) 
-    normCntrd = np.sqrt(centroid[0]**2 + centroid[1]**2)
-    normBaseV = np.sqrt(baseV[0]**2 + baseV[1]**2)
-    val = dotP / (normCntrd * normBaseV)
-    angle = math.acos(val)
-    angle = math.degrees(angle)
-    
-    print('after',angle)    
-
-
-
-    if angle < 270.0:
-        rotAngle = 270.0 - angle
-    else: 
-        rotAngle = -(270 - angle)
-
-    rotPoly = aff.rotate(poly, rotAngle)
-
-    return rotPoly
-
-
-
-
-
-def scale (poly):
-    xFactor = 1
-    (minx, miny, maxx, maxy) = poly.bounds 
-    polyHgt = maxy - miny
-    polywdth = maxx - minx 
-
-    yFactor = 20 / polyHgt
-    return aff.scale(poly,xfact=xFactor, yfact=yFactor)
-
-def scalePoly(poly, factor, rltvPoint= (2.0, 2.0)):
+    def scalePoly(poly, factor, rltvPoint= (2.0, 2.0)):
     x, y = poly.exterior.xy
     sub_x = [x - rltvPoint[0] for x in x]
     sub_y = [y - rltvPoint[1] for y in y]
@@ -140,4 +150,17 @@ def scaleUnitNorm(poly):
 
 def similarityCoef(poly1, poly2):
     pass
+
+
+
+'''
+
+
+
+
+
+
+
+
+
 

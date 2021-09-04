@@ -6,7 +6,7 @@ from shapely.geometry import Polygon, MultiLineString
 from utils import translateToOrig, center, rotateRef, scale
 import shapely.affinity as aff
 
-
+MultiLineString
 
 mypath = './pickles/'
 
