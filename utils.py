@@ -46,24 +46,58 @@ def translateToPoly (poly1, poly2):
 
     return translated_Poly
 
-def rotateRef (poly):
+def rotateRef (poly, baseV=(1, 0)):
+
+    # center of the polygon after translation to origin: Centroid 
     centroid = center(poly)
+
+    # Using arsin 
+    '''
     cntrdNorm = np.sqrt(centroid[0]**2 + centroid[1]**2)
-    #hetaRad =  centroid[0] / cntrdNorm 
+    #thetaRad =  centroid[0] / cntrdNorm 
     #thetaRad = math.degrees(thetaRad)
     val = centroid[1] / cntrdNorm
-    theta = np.arcsin(val)
-    theta = math.degrees(theta)
+    angle = np.arcsin(val)
+    print('before',angle)    
+    angle = math.degrees(angle)
+    '''
+    
+    
 
-    print('theat',theta)
-    rotAngle = 270 - theta 
+    
+    # Using cross product 
+    dotP = (centroid[0] * baseV[0]) + (centroid[1] * baseV[1]) 
+    normCntrd = np.sqrt(centroid[0]**2 + centroid[1]**2)
+    normBaseV = np.sqrt(baseV[0]**2 + baseV[1]**2)
+    val = dotP / (normCntrd * normBaseV)
+    angle = math.acos(val)
+    angle = math.degrees(angle)
+    
+    print('after',angle)    
+
+
+
+    if angle < 270.0:
+        rotAngle = 270.0 - angle
+    else: 
+        rotAngle = -(270 - angle)
+
     rotPoly = aff.rotate(poly, rotAngle)
+
     return rotPoly
 
 
 
 
 
+def scale (poly):
+    xFactor = 1
+    (minx, miny, maxx, maxy) = poly.bounds 
+    polyHgt = maxy - miny
+    polywdth = maxx - minx 
+
+    yFactor = 20 / polyHgt
+    return aff.scale(poly,xfact=xFactor, yfact=yFactor)
 
 def scalePoly(poly, factor, rltvPoint= (2.0, 2.0)):
     x, y = poly.exterior.xy
