@@ -4,22 +4,42 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import cv2
+from shapely.geometry import Polygon
+import matplotlib.pyplot as plt
+import shapely.geometry
+from shapely.geometry.point import Point
+
+def normalize (poly):
+    polyArray = np.array(poly.exterior.xy)
+
+    maxX = np.max(polyArray[0])
+    maxY = np.max(polyArray[1])
+
+    x = polyArray[0]/maxX
+    y = polyArray[1]/maxY
+    
+    points = [list(points) for points in zip(x, y)]
+    polyNorm = Polygon(points)
+
+    x, y = polyNorm.exterior.xy
+
+    return polyNorm
+
+
 
 def center (poly):
-
-    centerPoly = poly.centroid.xy
+    c1, c2 = poly.centroid.xy
+    centerPoly = (c1, c2)
     centerPoint= (centerPoly[0][0], centerPoly[1][0])
     return centerPoint
 
+
+
 def translateToOrig (poly, origin=(0, 0)):
-    x, y = poly.exterior.xy
-    s = np.asarray([x, y])
     # Find the minimum rotation rectangle
     #polyMRR = poly.minimum_rotated_rectangle
-    #polyMRR = cv2.minAreaRect(s)
-    #polyMRR = cv2.boxPoints(polyMRR)
-    #polyMRR = np.int0(polyMRR)
     polyMRR = poly.envelope
+
     # Find Center of MRR
     centerp = center(polyMRR)
 
@@ -31,11 +51,18 @@ def translateToOrig (poly, origin=(0, 0)):
 
     return trnsltPoly
 
+
+
 def rotateRef (poly, baseV=(1, 0)):
 
     # center of the polygon after translation to origin: Centroid 
     centroid = center(poly)
-    print(centroid)
+
+    # Round the centroid 
+    #cent1 = round(centroid[0])
+    #cent2 = round(centroid[1])
+
+
     # Using arsin 
     '''
     cntrdNorm = np.sqrt(centroid[0]**2 + centroid[1]**2)
@@ -46,9 +73,6 @@ def rotateRef (poly, baseV=(1, 0)):
     angle = math.degrees(angle)
     
     '''
-    
-    
-    
      # Using cross product 
     dotP = (centroid[0] * baseV[0]) + (centroid[1] * baseV[1]) 
     normCntrd = np.sqrt(centroid[0]**2 + centroid[1]**2)
@@ -57,13 +81,15 @@ def rotateRef (poly, baseV=(1, 0)):
     angle = math.acos(val)
     angle = math.degrees(angle)
     
-   
+    centroid = np.array(centroid)
+    centroid = np.round(centroid, 2)
+
     if centroid[1] >= 0:
         rotAngle = 270.0 - angle
-    elif centroid[1] < 0 and centroid[0] < 0:
-        rotAngle = (270.0 + angle) - 360.0
-    elif centroid[1] < 0 and centroid[0] > 0:
-        rotAngle = 270.0 + (180.0 - angle)
+    elif centroid[1] <= 0 and centroid[0] <= 0:
+        rotAngle = 90 - angle #(270.0 + angle) - 360.0
+    elif centroid[1] <= 0 and centroid[0] >= 0:
+        rotAngle = -(90 - angle) #-(270.0 + (180.0 - angle))
 
 
     '''
@@ -80,6 +106,8 @@ def rotateRef (poly, baseV=(1, 0)):
 
     return rotPoly
 
+
+
 def scale (poly):
     xFactor = 1
     (minx, miny, maxx, maxy) = poly.bounds 
@@ -89,71 +117,27 @@ def scale (poly):
     yFactor = 10 / polyHgt
     return aff.scale(poly,xfact=xFactor, yfact=yFactor)
 
-'''
-def translateToPoly (poly1, poly2):
-    # Find centroid of both polygons
-    centroidOrigin = poly1.centroid.xy
-    centroidTotranslate = poly2.centroid.xy
 
-    # Create centroid points for both polygons
-    cntrdOriginPoint = (centroidOrigin[0][0], centroidOrigin[1][0])
-    cntrdTotranslatePoint = (centroidTotranslate[0][0], centroidTotranslate[1][0])
+def similarity (poly1, poly2):
+    poly1 = poly1.buffer(0)
+    poly2 = poly2.buffer(0)
+    intxGeom = poly1.intersection (poly2) 
+    overlap = 0.5 * (intxGeom.area/poly1.area + intxGeom.area/poly2.area)
+    return overlap
+        
 
-    # Find offset point to translate polygon to polygon
-    Centroid_def_x = -(cntrdTotranslatePoint[0] - cntrdOriginPoint[0])
-    Centroid_def_y = -(cntrdTotranslatePoint[1] - cntrdOriginPoint[1])
-
-    translated_Poly = aff.translate(poly2, xoff=Centroid_def_x, yoff=Centroid_def_y)
-
-    translated_Poly = aff.rotate(translated_Poly, 90)
-
-    return translated_Poly
-
-    def scalePoly(poly, factor, rltvPoint= (2.0, 2.0)):
-    x, y = poly.exterior.xy
-    sub_x = [x - rltvPoint[0] for x in x]
-    sub_y = [y - rltvPoint[1] for y in y]
-
-    mult_x = [factor * sub_x for sub_x in sub_x]
-    mult_y = [factor * sub_y for sub_y in sub_y]
-
-    add_x = [mult_x + rltvPoint[0] for mult_x in mult_x]
-    add_y = [mult_y * rltvPoint[1] for mult_y in mult_y]
-
-    polyScaled = geom.Polygon(list(zip(add_x, add_y)))
-    #polyScaled = aff.scale(poly, x_new, y_new, origin=(0, 0))
-    #polyScaled = geom.Polygon((xOffset, yOffset))
-    return polyScaled
-
-def scaleUnitNorm(poly):
-    X, Y = poly.exterior.xy
-    print(type(X))
-    muX = np.array(X).mean(0)
-    muY = np.array(Y).mean(0)
-
-    X0 = X - muX
-    Y0 = Y - muY
-
-    ssX = np.linalg.norm(X0) ** 2  # (X0**2.).sum()
-    ssY = np.linalg.norm(Y0) ** 2  # (Y0**2.).sum()
-
-    # centred Frobenius norm
-    normX = np.sqrt(ssX)
-    normY = np.sqrt(ssY)
-
-    # scale to equal (unit) norm
-    X0 /= normX
-    Y0 /= normY
-    poly_scaled = geom.Polygon(list(zip(X0, Y0)))
-
-    return poly_scaled
-
-def similarityCoef(poly1, poly2):
-    pass
+def symreco (poly):
+    # check the area of overlap between a symbol and its 180 degree rotation symbol.
+    # the closer to, the more symmetric is the shape.
+    isSym = False
+    rotelmnt =  aff.rotate(poly, 180)
+    overlap = similarity(poly, rotelmnt)
+    if (overlap >= 0.99):
+        isSym = True
+    return isSym
 
 
 
-'''
 
 
 
