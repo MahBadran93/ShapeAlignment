@@ -73,23 +73,26 @@ def rotateRef (poly, baseV=(1, 0)):
     angle = math.degrees(angle)
     
     '''
-     # Using cross product 
-    dotP = (centroid[0] * baseV[0]) + (centroid[1] * baseV[1]) 
-    normCntrd = np.sqrt(centroid[0]**2 + centroid[1]**2)
-    normBaseV = np.sqrt(baseV[0]**2 + baseV[1]**2)
-    val = dotP / (normCntrd * normBaseV)
-    angle = math.acos(val)
-    angle = math.degrees(angle)
-    
-    centroid = np.array(centroid)
-    centroid = np.round(centroid, 2)
+    if centroid == (0, 0):
+        rotAngle = 0
+    else:
+        # Using cross product 
+        dotP = (centroid[0] * baseV[0]) + (centroid[1] * baseV[1]) 
+        normCntrd = np.sqrt(centroid[0]**2 + centroid[1]**2)
+        normBaseV = np.sqrt(baseV[0]**2 + baseV[1]**2)
+        val = dotP / (normCntrd * normBaseV)
+        angle = math.acos(val)
+        angle = math.degrees(angle)
+        
+        centroid = np.array(centroid)
+        centroid = np.round(centroid, 2)
 
-    if centroid[1] >= 0:
-        rotAngle = 270.0 - angle
-    elif centroid[1] <= 0 and centroid[0] <= 0:
-        rotAngle = 90 - angle #(270.0 + angle) - 360.0
-    elif centroid[1] <= 0 and centroid[0] >= 0:
-        rotAngle = -(90 - angle) #-(270.0 + (180.0 - angle))
+        if centroid[1] >= 0:
+            rotAngle = 270.0 - angle
+        elif centroid[1] <= 0 and centroid[0] <= 0:
+            rotAngle = 90 - angle #(270.0 + angle) - 360.0
+        elif centroid[1] <= 0 and centroid[0] >= 0:
+            rotAngle = -(90 - angle) #-(270.0 + (180.0 - angle))
 
 
     '''
