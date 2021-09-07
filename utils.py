@@ -109,7 +109,8 @@ def rotateRef (poly, baseV=(1, 0)):
 
     return rotPoly
 
-
+def rotateSym (poly):
+    pass
 
 def scale (poly):
     xFactor = 1
@@ -129,15 +130,23 @@ def similarity (poly1, poly2):
     return overlap
         
 
-def symreco (poly):
+def symreco (poly1, poly2, polygon=0):
     # check the area of overlap between a symbol and its 180 degree rotation symbol.
     # the closer to, the more symmetric is the shape.
     isSym = False
-    rotelmnt =  aff.rotate(poly, 180)
-    overlap = similarity(poly, rotelmnt)
-    if (overlap >= 0.99):
-        isSym = True
-    return isSym
+    if polygon:
+        rotelmnt =  aff.rotate(poly1, 180)
+        overlap = similarity(poly1, rotelmnt)
+        if (overlap >= 0.99):
+            isSym = True
+        return isSym
+    else:
+        distance = poly1.hausdorff_distance(poly2)
+        print('distance:', distance)
+        if distance < 1e-12:
+            isSym = True
+        return isSym
+            
 
 
 
