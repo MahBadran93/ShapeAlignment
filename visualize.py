@@ -5,7 +5,7 @@ from os.path import isfile, join
 from shapely.geometry import Polygon, MultiLineString, MultiPolygon, LineString
 from shapely.ops import linemerge
 import shapely.validation as val
-from utils import translateToOrig, center, rotateRef, scale, normalize, symreco, similarity
+from utils import translateToOrig, center, rotateRef, scale, normalize, symreco, similarity, transform
 import shapely.affinity as aff
 import numpy as np
 import plots 
@@ -13,6 +13,8 @@ import plots
 
 
 mypath = './pickles/'
+count = 0
+listOfMult = []
 
 onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
 for file in onlyfiles[:]: #13 14 , 
@@ -30,32 +32,40 @@ for file in onlyfiles[:]: #13 14 ,
         continue
 
     print('group name: ', mulitLine[1])
-    fig, ((ax1, ax2, ax3), (ax4, ax5, ax6)) = plt.subplots(nrows=2, ncols=3)
-    fig.suptitle('Element Transformation')
+    #fig, ((ax1, ax2, ax3), (ax4, ax5, ax6)) = plt.subplots(nrows=2, ncols=3)
+    #fig.suptitle(str( mulitLine[1])+ ' ' + 'Element Transformation')
     rottt = aff.rotate( mulitLine[0], 180)
-    #print(rottt.equals(mulitLine[0]))
+  
+    listOfMult.append(mulitLine[0])
+    count+=1 
+    if(count > 44):
+        lines = list()
+        scaled = transform(listOfMult[0])
+        scaled2 =transform(listOfMult[44])
+        geom1 =  scaled #listOfMult[0]
+        geom2 = scaled2 #listOfMult[44]  
 
-    points0 = list()
-    for i in mulitLine[0]:
-        for line in i.coords:
-            points0.append(line)
-    poly = Polygon(points)
 
-    points = list()
-    for i in rottt:
-        for line in i.coords:
-            points.append(line)
-    rotttPoly = Polygon(points)
+        for line in list(geom1):
+                for c in line.coords:
+                    lines.append(c)
+                x, y = line.coords.xy
+                plt.plot(x, y)
+        plt.show()
+        lines = list()
+        for line in list(geom2):
+                for c in line.coords:
+                    lines.append(c)
+                x, y = line.coords.xy
+                plt.plot(x, y)
+        dist, isSim = similarity(geom1, geom2)
+        print('similar:', isSim, 'dist', dist)
+        plt.show()
+        break
 
-    points2 = list()
-    for i in mulitLine[0]:
-        for line in i.coords:
-            points2.append(line)
-    rottt2 = Polygon(points2)
-    x, y = poly.exterior.xy
-    ax6.plot(x, y)
-    print(symreco(mulitLine[0], rottt) )
-    plots.plot_string(ax1,ax2,ax3,ax4,ax5, mulitLine[0])
-    plt.show()
+
+
+    #scaled = plots.plot_transforms(ax1,ax2,ax3,ax4,ax5, mulitLine[0])
+    #plt.show()
 
     

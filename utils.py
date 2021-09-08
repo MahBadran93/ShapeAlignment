@@ -3,7 +3,6 @@ import shapely.affinity as aff
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-import cv2
 from shapely.geometry import Polygon
 import matplotlib.pyplot as plt
 import shapely.geometry
@@ -118,21 +117,38 @@ def scale (poly):
     polyHgt = maxy - miny
     polywdth = maxx - minx 
 
+    xFactor = 10 / polywdth
     yFactor = 10 / polyHgt
     return aff.scale(poly,xfact=xFactor, yfact=yFactor)
 
 
-def similarity (poly1, poly2):
-    poly1 = poly1.buffer(0)
-    poly2 = poly2.buffer(0)
-    intxGeom = poly1.intersection (poly2) 
-    overlap = 0.5 * (intxGeom.area/poly1.area + intxGeom.area/poly2.area)
-    return overlap
-        
+def similarity (poly1, poly2, polygon = 0):
+    isSym = 0
+    if polygon:
+        oThreshold = 0.99
+        poly1 = poly1.buffer(0)
+        poly2 = poly2.buffer(0)
+        intxGeom = poly1.intersection (poly2) 
+        overlap = 0.5 * (intxGeom.area/poly1.area + intxGeom.area/poly2.area)
+        if overlap > oThreshold:
+            isSym = 1
+        return overlap, isSym
+    else:
+        dThreshold = 1e-10
+        distance = poly1.hausdorff_distance(poly2)
+        if distance < dThreshold:
+            isSym = 1
+        return distance, isSym
+
+
 
 def symreco (poly1, poly2, polygon=0):
     # check the area of overlap between a symbol and its 180 degree rotation symbol.
     # the closer to, the more symmetric is the shape.
+
+    # distance threshold 
+    threshold = 1e-10
+
     isSym = False
     if polygon:
         rotelmnt =  aff.rotate(poly1, 180)
@@ -142,12 +158,35 @@ def symreco (poly1, poly2, polygon=0):
         return isSym
     else:
         distance = poly1.hausdorff_distance(poly2)
-        print('distance:', distance)
-        if distance < 1e-12:
+        if distance < threshold:
             isSym = True
         return isSym
             
 
+def transform(geom):
+
+    # Translation 
+    lineTrans = translateToOrig(geom)
+    # Rotation
+    if symreco(lineTrans, aff.rotate(lineTrans, 180)):
+        print('shape is symmetric...')
+        lineTransMRR = lineTrans.envelope 
+        x, y = lineTransMRR.exterior.xy
+        # (width, height)
+        edge_length = (Point(x[0], y[0]).distance(Point(x[1], y[1])), Point(x[1], y[1]).distance(Point(x[2], y[2])))
+        width = edge_length[0]
+        height = edge_length[1]
+        if width > height:
+            rottdStrtL = aff.rotate(lineTrans, 90)
+        else:
+            rottdStrtL = aff.rotate(lineTrans, 0)
+    else:
+        rottdStrtL = rotateRef(lineTrans)
+    
+    # Scaling  
+    scldStrtLn = scale(rottdStrtL)
+
+    return scldStrtLn 
 
 
 
