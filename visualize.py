@@ -5,12 +5,14 @@ from os.path import isfile, join
 from shapely.geometry import Polygon, MultiLineString, MultiPolygon, LineString
 from shapely.ops import linemerge
 import shapely.validation as val
-from utils import translateToOrig, center, rotateRef, scale, normalize, symreco, similarity, transform
+from utils import translateToOrig, center, rotateRef, scale, normalize, symreco, similarity, transform, tomultpolygon
 import shapely.affinity as aff
 import numpy as np
 import plots 
 
 
+# First: use transform function to transform the multlinestrings (Translate, scale and rotation)
+# Second: use similarity function for comparision. It will return 1 if they are similar and 0 if they are not.
 
 mypath = './pickles/'
 count = 0
@@ -38,30 +40,70 @@ for file in onlyfiles[:]: #13 14 ,
   
     listOfMult.append(mulitLine[0])
     count+=1 
-    if(count > 44):
-        lines = list()
-        scaled = transform(listOfMult[0])
-        scaled2 =transform(listOfMult[44])
-        geom1 =  scaled #listOfMult[0]
-        geom2 = scaled2 #listOfMult[44]  
 
+    if count > 45:
+        scaled = transform(listOfMult[13])
+        scaled2 =transform(listOfMult[39])
+        scaled = tomultpolygon(scaled)
+        scaled2 = tomultpolygon(scaled2)
 
-        for line in list(geom1):
-                for c in line.coords:
-                    lines.append(c)
-                x, y = line.coords.xy
-                plt.plot(x, y)
-        plt.show()
-        lines = list()
-        for line in list(geom2):
-                for c in line.coords:
-                    lines.append(c)
-                x, y = line.coords.xy
-                plt.plot(x, y)
-        dist, isSim = similarity(geom1, geom2)
+        dist, isSim = similarity(scaled, scaled2, polygon=1)
         print('similar:', isSim, 'dist', dist)
-        plt.show()
-        break
+
+        # # Transform    # try 9 10 ..... 7 8 .... 11 12   14 40
+        #scaled = transform(mulitLine[0])
+        #scaled = tomultpolygon(scaled)
+        # # convert to mult polygon 
+
+        centrd = scaled.centroid.coords.xy
+        cntrd2 = scaled.envelope.centroid.coords.xy
+
+        if scaled.geom_type == 'MultiPolygon':
+            for poly in list(scaled):
+                x, y = poly.exterior.xy
+                plt.plot(x, y)
+                plt.plot(centrd[0], centrd[1], marker='.')
+                plt.plot(cntrd2[0], cntrd2[1], marker='+')
+            plt.show()
+            for poly in list(scaled2):
+                x, y = poly.exterior.xy
+                plt.plot(x, y)
+            plt.show()
+        else:
+            x, y = scaled.exterior.xy
+            x2, y2 = scaled2.exterior.xy
+            plt.plot(x, y)
+            plt.plot(centrd[0], centrd[1], marker='.')
+            plt.plot(cntrd2[0], cntrd2[1], marker='+')
+            plt.show()
+            plt.plot(x2, y2)
+            plt.show()
+
+
+    # if(count > 44):
+    #     lines = list()
+    #     scaled = transform(listOfMult[0])
+    #     scaled2 =transform(listOfMult[44])
+    #     geom1 =  scaled #listOfMult[0]
+    #     geom2 = scaled2 #listOfMult[44]  
+
+
+    #     for line in list(geom1):
+    #             for c in line.coords:
+    #                 lines.append(c)
+    #             x, y = line.coords.xy
+    #             plt.plot(x, y)
+    #     plt.show()
+    #     lines = list()
+    #     for line in list(geom2):
+    #             for c in line.coords:
+    #                 lines.append(c)
+    #             x, y = line.coords.xy
+    #             plt.plot(x, y)
+    #     dist, isSim = similarity(geom1, geom2)
+    #     print('similar:', isSim, 'dist', dist)
+    #     plt.show()
+    #     break
 
 
 

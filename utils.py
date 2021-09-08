@@ -125,11 +125,12 @@ def scale (poly):
 def similarity (poly1, poly2, polygon = 0):
     isSym = 0
     if polygon:
-        oThreshold = 0.99
-        poly1 = poly1.buffer(0)
-        poly2 = poly2.buffer(0)
-        intxGeom = poly1.intersection (poly2) 
-        overlap = 0.5 * (intxGeom.area/poly1.area + intxGeom.area/poly2.area)
+        oThreshold = 0.90
+        intxGeom = poly1.intersection (poly1)
+        uninGeom = poly1.union (poly2)
+        overlap = intxGeom.area / uninGeom.area
+        print('interrrr', overlap)
+        #overlap = 0.5 * (intxGeom.area/poly1.area + intxGeom.area/poly2.area)
         if overlap > oThreshold:
             isSym = 1
         return overlap, isSym
@@ -189,6 +190,12 @@ def transform(geom):
     return scldStrtLn 
 
 
+def tomultpolygon (geom):
+    STROKED_GLYPH_BUFFER_PERC = 2.0
+    minX, minY, maxX, maxY = geom.bounds
+    bufferDist = 0.01 * STROKED_GLYPH_BUFFER_PERC * max (maxX - minX, maxY - minY)
+    bufferGeom = geom.buffer (bufferDist)
+    return bufferGeom
 
 
 
