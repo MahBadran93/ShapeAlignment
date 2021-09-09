@@ -8,27 +8,44 @@ import  shapely.affinity as aff
 # xs = [x[0] for x in points]
 # ys = [x[1] for x in points] 
 
-def plot_comparison (geom, ax1, ax2):
+def plot_comparison (geom1, geom2, ax1, ax2, ax3, ax4):
     """
     Plots original multiple lines object compared to their corresponding polygons
     Input:
         - geom: multi line string object (shapely)
     
     """
-    for line in list(geom):
+    # First shape 
+    for line in list(geom1):
         x, y = line.coords.xy
         ax1.plot(x, y)
         ax1.set_title('Original linestrings')
-    geom = tomultpolygon(geom)
-    if geom.geom_type == 'Polygon':
-        x1, y1 = geom.exterior.xy
+    geomM1 = tomultpolygon(geom1)
+    if geomM1.geom_type == 'Polygon':
+        x1, y1 = geomM1.exterior.xy
         ax2.plot(x1, y1)
         ax2.set_title('Multi polygon')
     else: # in case of multiple polygons 
-        for poly in tomultpolygon(geom):
+        for poly in geomM1:
             x1, y1 = poly.exterior.xy
             ax2.plot(x1, y1)
             ax2.set_title('Multi polygon')
+    
+    # Second shape 
+    for line in list(geom2):
+        x, y = line.coords.xy
+        ax3.plot(x, y)
+        ax3.set_title('Original linestrings')
+    geomM2 = tomultpolygon(geom2)
+    if geomM2.geom_type == 'Polygon':
+        x1, y1 = geomM2.exterior.xy
+        ax4.plot(x1, y1)
+        ax4.set_title('Multi polygon')
+    else: # in case of multiple polygons 
+        for poly in geomM2:
+            x1, y1 = poly.exterior.xy
+            ax4.plot(x1, y1)
+            ax4.set_title('Multi polygon')
 
 
 def plot_transforms (ax1,ax2,ax3,ax4,ax5, mltline, colorMain='red', colorMRR='green'):
@@ -109,3 +126,5 @@ def plot_transforms (ax1,ax2,ax3,ax4,ax5, mltline, colorMain='red', colorMRR='gr
 
     return scldStrtLn
 
+def similarity (geom1, geom2, ax1, ax2):
+    pass
