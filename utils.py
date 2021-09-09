@@ -8,14 +8,22 @@ import matplotlib.pyplot as plt
 import shapely.geometry
 from shapely.geometry.point import Point
 
-def normalize (poly):
-    polyArray = np.array(poly.exterior.xy)
 
-    maxX = np.max(polyArray[0])
-    maxY = np.max(polyArray[1])
+def normalize (geom):
 
-    x = polyArray[0]/maxX
-    y = polyArray[1]/maxY
+    """
+        Normalize a shapely geometric object 
+        Input: 
+            - geom: Shapely gometric object 
+
+    """
+    geomArray = np.array(geom.exterior.xy)
+
+    maxX = np.max(geomArray[0])
+    maxY = np.max(geomArray[1])
+
+    x = geomArray[0]/maxX
+    y = geomArray[1]/maxY
     
     points = [list(points) for points in zip(x, y)]
     polyNorm = Polygon(points)
@@ -25,125 +33,159 @@ def normalize (poly):
     return polyNorm
 
 
+def center (geom):
 
-def center (poly):
-    c1, c2 = poly.centroid.xy
+    """
+         Find the centroid of a shapely geometric object 
+         Input:
+            - geom: Shapely gometric object
+    
+    """
+
+    c1, c2 = geom.centroid.xy
     centerPoly = (c1, c2)
     centerPoint= (centerPoly[0][0], centerPoly[1][0])
     return centerPoint
 
 
+def translateToOrig (geom, origin=(0, 0)):
 
-def translateToOrig (poly, origin=(0, 0)):
+    """
+        Translate a shapely geometric object to the origin reference frame
+        Input: 
+            - geom:  Shapely gometric object
+
+    """
+
     # Find the minimum rotation rectangle
-    #polyMRR = poly.minimum_rotated_rectangle
-    polyMRR = poly.envelope
+    #geomMRR = geom.minimum_rotated_rectangle
+    geomMRR = geom.envelope
 
     # Find Center of MRR
-    centerp = center(polyMRR)
+    centerp = center(geomMRR)
 
-    # Find offset point to translate polygon to origin
+    # Find offset point to translate geometric object to origin
     xOff = -(centerp[0] - origin[0])
     yOff = -(centerp[1] - origin[0])
 
-    trnsltPoly = aff.translate(poly, xoff=xOff, yoff=yOff)
+    trnsltPoly = aff.translate(geom, xoff=xOff, yoff=yOff)
 
     return trnsltPoly
 
 
+def rotateRef (geom, baseV=(1, 0), polygon = 0):
 
-def rotateRef (poly, baseV=(1, 0)):
-
-    # center of the polygon after translation to origin: Centroid 
-    centroid = center(poly)
-
-    # Round the centroid 
-    #cent1 = round(centroid[0])
-    #cent2 = round(centroid[1])
-
-
-    # Using arsin 
-    '''
-    cntrdNorm = np.sqrt(centroid[0]**2 + centroid[1]**2)
-    #thetaRad =  centroid[0] / cntrdNorm 
-    #thetaRad = math.degrees(thetaRad)
-    val = centroid[1] / cntrdNorm
-    angle = np.arcsin(val)
-    angle = math.degrees(angle)
+    """
+        Rotate a translated geometric object toward the center of grvity (object centroid)
+        Input:
+            - geom: Shapely gometric object (multi line string or multi polygon) Translated to the origin 
     
-    '''
-    if centroid == (0, 0):
-        rotAngle = 0
+    """
+    # Check if a geometric object is symmetrical 
+    if symreco(geom, polygon=polygon):
+        print('shape is symmetric...')
+        centroid = center(geom)
+        centermrr = center(geom.envelope)
+        print('centroid',centroid, 'centermrr', centermrr)
+        lineTranslMRR = geom.envelope 
+        x, y = lineTranslMRR.exterior.xy
+        # (width, height)
+        edge_length = (Point(x[0], y[0]).distance(Point(x[1], y[1])), Point(x[1], y[1]).distance(Point(x[2], y[2])))
+        width = edge_length[0]
+        height = edge_length[1]
+        if width > height:
+            rotGeom = aff.rotate(geom, 90)
+        else:
+            rotGeom = aff.rotate(geom, 0)
+        return rotGeom
     else:
-        # Using cross product 
-        dotP = (centroid[0] * baseV[0]) + (centroid[1] * baseV[1]) 
-        normCntrd = np.sqrt(centroid[0]**2 + centroid[1]**2)
-        normBaseV = np.sqrt(baseV[0]**2 + baseV[1]**2)
-        val = dotP / (normCntrd * normBaseV)
-        angle = math.acos(val)
-        angle = math.degrees(angle)
-        
-        centroid = np.array(centroid)
-        centroid = np.round(centroid, 2)
+        # centeroid of the translated geometric object
+        centroid = center(geom)
+        centermrr = center(geom.envelope)
+        print('centroid',centroid, 'centermrr', centermrr)
+        # Find the angle of rotation 
+        if centroid == (0, 0):
+            rotAngle = 0
+        else:
+            # Using cross product 
+            dotP = (centroid[0] * baseV[0]) + (centroid[1] * baseV[1]) 
+            normCntrd = np.sqrt(centroid[0]**2 + centroid[1]**2)
+            normBaseV = np.sqrt(baseV[0]**2 + baseV[1]**2)
+            val = dotP / (normCntrd * normBaseV)
+            angle = math.acos(val)
+            angle = math.degrees(angle)
+            
+            centroid = np.array(centroid)
+            centroid = np.round(centroid, 2)
 
-        if centroid[1] >= 0:
-            rotAngle = 270.0 - angle
-        elif centroid[1] <= 0 and centroid[0] <= 0:
-            rotAngle = 90 - angle #(270.0 + angle) - 360.0
-        elif centroid[1] <= 0 and centroid[0] >= 0:
-            rotAngle = -(90 - angle) #-(270.0 + (180.0 - angle))
+            if centroid[1] >= 0:
+                rotAngle = 270.0 - angle
+            elif centroid[1] <= 0 and centroid[0] <= 0:
+                rotAngle = 90 - angle #(270.0 + angle) - 360.0
+            elif centroid[1] <= 0 and centroid[0] >= 0:
+                rotAngle = -(90 - angle) #-(270.0 + (180.0 - angle))
+
+        rotGeom = aff.rotate(geom, rotAngle)
+
+        return rotGeom
 
 
-    '''
-    if angle < 270.0 or angle == 270.0:
-        rotAngle = 270.0 - angle
-        print(rotAngle)
-    else: 
-        rotAngle = (270.0 + angle) - 360.0
-        print('After', rotAngle)
-    '''
-    
+def scale (geom):
 
-    rotPoly = aff.rotate(poly, rotAngle)
+    """
+        Scale a shapely geometric object 
+        Input:
+            - geom: Shapely gometric object (multi line string or multi polygon) Translated to the origin
+    """
 
-    return rotPoly
-
-def rotateSym (poly):
-    pass
-
-def scale (poly):
     xFactor = 1
-    (minx, miny, maxx, maxy) = poly.bounds 
-    polyHgt = maxy - miny
-    polywdth = maxx - minx 
+    (minx, miny, maxx, maxy) = geom.bounds 
+    geomHgt = maxy - miny
+    geomWdth = maxx - minx 
 
-    xFactor = 10 / polywdth
-    yFactor = 10 / polyHgt
-    return aff.scale(poly,xfact=xFactor, yfact=yFactor)
+    xFactor = 10 / geomWdth
+    yFactor = 10 / geomHgt
+
+    return aff.scale(geom, xfact=xFactor, yfact=yFactor)
 
 
-def similarity (poly1, poly2, polygon = 0):
-    isSym = 0
+def similarity (geom1, geom2, polygon = 0):
+    """
+    Find the similarity between two geometric objects
+    Input: 
+        - geom1: the first geometric object
+        - geom2: the second geometric object 
+        - polygon: a flag to know if the geometric object you pass is a polygon or multiline string object
+            - in case of polygon (polygon= 1): Intesection over union will be used to find the similarity
+            - in case of multi line string (polygon= 0): Hausdorff distance will be used measure the similarity  
+    """
+
+    similar = 0
+
     if polygon:
         oThreshold = 0.90
-        intxGeom = poly1.intersection (poly1)
-        uninGeom = poly1.union (poly2)
+        intxGeom = geom1.intersection (geom2)
+        uninGeom = geom1.union (geom2)
         overlap = intxGeom.area / uninGeom.area
-        print('interrrr', overlap)
         #overlap = 0.5 * (intxGeom.area/poly1.area + intxGeom.area/poly2.area)
         if overlap > oThreshold:
-            isSym = 1
-        return overlap, isSym
+            similar = 1
+        return overlap, similar
     else:
         dThreshold = 1e-10
-        distance = poly1.hausdorff_distance(poly2)
+        distance = geom1.hausdorff_distance(geom2)
         if distance < dThreshold:
-            isSym = 1
-        return distance, isSym
+            similar = 1
+        return distance, similar
 
 
-
-def symreco (poly1, poly2, polygon=0):
+def symreco (geom, polygon=0):
+    
+    """
+    Check if a geometric object is symmetric 
+    Input: 
+        - geom: Shapely geometric object 
+    """
     # check the area of overlap between a symbol and its 180 degree rotation symbol.
     # the closer to, the more symmetric is the shape.
 
@@ -152,13 +194,14 @@ def symreco (poly1, poly2, polygon=0):
 
     isSym = False
     if polygon:
-        rotelmnt =  aff.rotate(poly1, 180)
-        overlap = similarity(poly1, rotelmnt)
+        rotelmnt =  aff.rotate(geom, 180)
+        distance, overlap = similarity(geom, rotelmnt, polygon=polygon)
         if (overlap >= 0.99):
             isSym = True
         return isSym
     else:
-        distance = poly1.hausdorff_distance(poly2)
+        rotelmnt =  aff.rotate(geom, 180)
+        distance = geom.hausdorff_distance(rotelmnt)
         if distance < threshold:
             isSym = True
         return isSym
@@ -166,24 +209,15 @@ def symreco (poly1, poly2, polygon=0):
 
 def transform(geom):
 
+    """
+        Transfrom a geometric object (Translation, Rotation and scaling)
+        Input: 
+
+    """
     # Translation 
     lineTrans = translateToOrig(geom)
     # Rotation
-    if symreco(lineTrans, aff.rotate(lineTrans, 180)):
-        print('shape is symmetric...')
-        lineTransMRR = lineTrans.envelope 
-        x, y = lineTransMRR.exterior.xy
-        # (width, height)
-        edge_length = (Point(x[0], y[0]).distance(Point(x[1], y[1])), Point(x[1], y[1]).distance(Point(x[2], y[2])))
-        width = edge_length[0]
-        height = edge_length[1]
-        if width > height:
-            rottdStrtL = aff.rotate(lineTrans, 90)
-        else:
-            rottdStrtL = aff.rotate(lineTrans, 0)
-    else:
-        rottdStrtL = rotateRef(lineTrans)
-    
+    rottdStrtL = rotateRef(lineTrans)
     # Scaling  
     scldStrtLn = scale(rottdStrtL)
 
@@ -191,6 +225,12 @@ def transform(geom):
 
 
 def tomultpolygon (geom):
+
+    """
+    Convert mult line string object to multi polygon object
+    Input: 
+        - geom: multi line string geometric object
+    """
     STROKED_GLYPH_BUFFER_PERC = 2.0
     minX, minY, maxX, maxY = geom.bounds
     bufferDist = 0.01 * STROKED_GLYPH_BUFFER_PERC * max (maxX - minX, maxY - minY)
