@@ -31,7 +31,6 @@ def plot_comparison (geom, ax1, ax2):
             ax2.set_title('Multi polygon')
 
 
-
 def plot_transforms (ax1,ax2,ax3,ax4,ax5, mltline, colorMain='red', colorMRR='green'):
     
     """

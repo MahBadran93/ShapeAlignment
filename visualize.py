@@ -35,14 +35,19 @@ for file in onlyfiles[:]: #13 14 ,
         continue
 
     print('group name: ', mulitLine[1])
+
+    #..................... Create Figures ...................................
     #fig, ((ax1, ax2, ax3), (ax4, ax5, ax6)) = plt.subplots(nrows=2, ncols=3)
     figComp , ((ax1, ax2)) = plt.subplots(nrows=1, ncols=2)
     #fig.suptitle(str( mulitLine[1])+ ' ' + 'Element Transformation')
+
+    # Plot comparision between the line string shape and their polygon representation
     plots.plot_comparison(mulitLine[0], ax1,ax2)
     plt.show()
     
-
+    # Append all line string objects into a list 
     listOfMult.append(mulitLine[0])
+    
     count+=1 
     #scaled = plots.plot_transforms(ax1,ax2,ax3,ax4,ax5, mulitLine[0])
     #plt.show()
@@ -86,33 +91,7 @@ for file in onlyfiles[:]: #13 14 ,
             plt.show()
 
 
-    # if(count > 44):
-    #     lines = list()
-    #     scaled = transform(listOfMult[0])
-    #     scaled2 =transform(listOfMult[44])
-    #     geom1 =  scaled #listOfMult[0]
-    #     geom2 = scaled2 #listOfMult[44]  
-
-
-    #     for line in list(geom1):
-    #             for c in line.coords:
-    #                 lines.append(c)
-    #             x, y = line.coords.xy
-    #             plt.plot(x, y)
-    #     plt.show()
-    #     lines = list()
-    #     for line in list(geom2):
-    #             for c in line.coords:
-    #                 lines.append(c)
-    #             x, y = line.coords.xy
-    #             plt.plot(x, y)
-    #     dist, isSim = similarity(geom1, geom2)
-    #     print('similar:', isSim, 'dist', dist)
-    #     plt.show()
-    #     break
-
-
-
+    
     #scaled = plots.plot_transforms(ax1,ax2,ax3,ax4,ax5, mulitLine[0])
     #plt.show()
 
