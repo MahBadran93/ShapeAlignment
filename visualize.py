@@ -16,6 +16,7 @@ import plots
 
 mypath = './pickles/'
 count = 0
+
 listOfMult = []
 
 onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
@@ -34,20 +35,20 @@ for file in onlyfiles[:]: #13 14 ,
         continue
 
     print('group name: ', mulitLine[1])
-    fig, ((ax1, ax2, ax3), (ax4, ax5, ax6)) = plt.subplots(nrows=2, ncols=3)
-    #figComp , ((ax1, ax2)) = plt.subplots(nrows=1, ncols=2)
-    fig.suptitle(str( mulitLine[1])+ ' ' + 'Element Transformation')
-    rottt = aff.rotate( mulitLine[0], 180)
-  
+    #fig, ((ax1, ax2, ax3), (ax4, ax5, ax6)) = plt.subplots(nrows=2, ncols=3)
+    figComp , ((ax1, ax2)) = plt.subplots(nrows=1, ncols=2)
+    #fig.suptitle(str( mulitLine[1])+ ' ' + 'Element Transformation')
+    plots.plot_comparison(mulitLine[0], ax1,ax2)
+    plt.show()
+    
+
     listOfMult.append(mulitLine[0])
     count+=1 
-    scaled = plots.plot_transforms(ax1,ax2,ax3,ax4,ax5, mulitLine[0])
-    plt.show()
-    #break
+    #scaled = plots.plot_transforms(ax1,ax2,ax3,ax4,ax5, mulitLine[0])
+    #plt.show()
+
     if count > 45:
-
-
-        scaled = transform(listOfMult[13])
+        scaled = transform(listOfMult[10])
         scaled2 =transform(listOfMult[39])
         scaled = tomultpolygon(scaled)
         scaled2 = tomultpolygon(scaled2)

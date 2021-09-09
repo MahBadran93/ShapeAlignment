@@ -8,12 +8,27 @@ import  shapely.affinity as aff
 # xs = [x[0] for x in points]
 # ys = [x[1] for x in points] 
 
-def plot_comparison (geom1 , ax1, ax2):
-    if geom1.geom_type == 'Polygon':
-        x, y = geom1.exterior.xy
-        x1, y1 = tomultpolygon(geom1).exterior.xy
+def plot_comparison (geom, ax1, ax2):
+    """
+    Plots original multiple lines object compared to their corresponding polygons
+    Input:
+        - geom: multi line string object (shapely)
+    
+    """
+    for line in list(geom):
+        x, y = line.coords.xy
         ax1.plot(x, y)
+        ax1.set_title('Original linestrings')
+    geom = tomultpolygon(geom)
+    if geom.geom_type == 'Polygon':
+        x1, y1 = geom.exterior.xy
         ax2.plot(x1, y1)
+        ax2.set_title('Multi polygon')
+    else: # in case of multiple polygons 
+        for poly in tomultpolygon(geom):
+            x1, y1 = poly.exterior.xy
+            ax2.plot(x1, y1)
+            ax2.set_title('Multi polygon')
 
 
 
@@ -48,7 +63,7 @@ def plot_transforms (ax1,ax2,ax3,ax4,ax5, mltline, colorMain='red', colorMRR='gr
     mx, my = mltline.envelope.exterior.xy
     ax2.plot(mx, my, color=colorMRR, zorder=1)
     ax2.plot(cx, cy, marker='+', markersize = 6, color=colorMRR, zorder=1)
-    ax2.plot(mltlineCntrd[0], mltlineCntrd[1], marker='o')
+    ax2.plot(mltlineCntrd[0], mltlineCntrd[1], marker='.')
     ax2.set_title('MRR')
 
 
@@ -62,7 +77,7 @@ def plot_transforms (ax1,ax2,ax3,ax4,ax5, mltline, colorMain='red', colorMRR='gr
         
         ax3.plot(x, y, color=colorMain, zorder=1)
         ax3.plot(0, 0, marker='+')
-        ax3.plot(lineTransCentd[0], lineTransCentd[1], marker='o')
+        ax3.plot(lineTransCentd[0], lineTransCentd[1], marker='.')
         ax3.set_title('Translation')
 
    
@@ -79,7 +94,7 @@ def plot_transforms (ax1,ax2,ax3,ax4,ax5, mltline, colorMain='red', colorMRR='gr
 
     # Plot center and centorid after rotation 
     rx, ry = rottdStrtL.centroid.coords.xy
-    ax4.plot(rx, ry, marker='o', color=colorMRR, zorder=1)
+    ax4.plot(rx, ry, marker='.', color=colorMRR, zorder=1)
     ax4.plot(0, 0, marker='+', markersize = 6, color=colorMRR, zorder=1)
     #.................................................................................................
     

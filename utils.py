@@ -85,24 +85,29 @@ def rotateRef (geom, baseV=(1, 0), polygon = 0):
     if symreco(geom, polygon=polygon):
         print('shape is symmetric...')
         centroid = center(geom)
-        centermrr = center(geom.envelope)
-        print('centroid',centroid, 'centermrr', centermrr)
-        lineTranslMRR = geom.envelope 
-        x, y = lineTranslMRR.exterior.xy
-        # (width, height)
+        centerMRR = center(geom.envelope)
+        #print('centroid',centroid, 'centermrr', centerMRR)
+
+        # Find width and height of the minimal rotated rectangle object 
+        geomTranslMRR = geom.envelope 
+        x, y = geomTranslMRR.exterior.xy
+        # width and height
         edge_length = (Point(x[0], y[0]).distance(Point(x[1], y[1])), Point(x[1], y[1]).distance(Point(x[2], y[2])))
         width = edge_length[0]
         height = edge_length[1]
+        # Rotate 
         if width > height:
             rotGeom = aff.rotate(geom, 90)
         else:
             rotGeom = aff.rotate(geom, 0)
         return rotGeom
     else:
-        # centeroid of the translated geometric object
+        # if the object is not symmetrical 
+        # centeroid of the translated geometric object and center of MRR 
         centroid = center(geom)
         centermrr = center(geom.envelope)
-        print('centroid',centroid, 'centermrr', centermrr)
+        #print('centroid',centroid, 'centermrr', centermrr)
+
         # Find the angle of rotation 
         if centroid == (0, 0):
             rotAngle = 0
@@ -115,9 +120,12 @@ def rotateRef (geom, baseV=(1, 0), polygon = 0):
             angle = math.acos(val)
             angle = math.degrees(angle)
             
+            print(centroid)
+
             centroid = np.array(centroid)
             centroid = np.round(centroid, 2)
 
+            print(centroid)
             if centroid[1] >= 0:
                 rotAngle = 270.0 - angle
             elif centroid[1] <= 0 and centroid[0] <= 0:
@@ -139,6 +147,7 @@ def scale (geom):
     """
 
     xFactor = 1
+    yFactor = 1
     (minx, miny, maxx, maxy) = geom.bounds 
     geomHgt = maxy - miny
     geomWdth = maxx - minx 
@@ -194,20 +203,20 @@ def symreco (geom, polygon=0):
 
     isSym = False
     if polygon:
-        rotelmnt =  aff.rotate(geom, 180)
-        distance, overlap = similarity(geom, rotelmnt, polygon=polygon)
+        rotGeom =  aff.rotate(geom, 180)
+        distance, overlap = similarity(geom, rotGeom, polygon=polygon)
         if (overlap >= 0.99):
             isSym = True
         return isSym
     else:
-        rotelmnt =  aff.rotate(geom, 180)
-        distance = geom.hausdorff_distance(rotelmnt)
+        roteGeom =  aff.rotate(geom, 180)
+        distance = geom.hausdorff_distance(roteGeom)
         if distance < threshold:
             isSym = True
         return isSym
             
 
-def transform(geom):
+def transform(geom, polygon = 0):
 
     """
         Transfrom a geometric object (Translation, Rotation and scaling)
@@ -215,13 +224,13 @@ def transform(geom):
 
     """
     # Translation 
-    lineTrans = translateToOrig(geom)
+    geomTrans = translateToOrig(geom)
     # Rotation
-    rottdStrtL = rotateRef(lineTrans)
+    rotdGeom = rotateRef(geomTrans, polygon=polygon)
     # Scaling  
-    scldStrtLn = scale(rottdStrtL)
+    scldGeom = scale(rotdGeom)
 
-    return scldStrtLn 
+    return scldGeom 
 
 
 def tomultpolygon (geom):
