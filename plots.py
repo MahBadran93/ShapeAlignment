@@ -8,44 +8,80 @@ import  shapely.affinity as aff
 # xs = [x[0] for x in points]
 # ys = [x[1] for x in points] 
 
-def plot_comparison (geom1, geom2, ax1, ax2, ax3, ax4):
+def plot_comparison (geom1, geom2, transformed1, transformed2, ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8):
     """
     Plots original multiple lines object compared to their corresponding polygons
     Input:
-        - geom: multi line string object (shapely)
+        - geom1: multi line string object (shapely)
+        - geom2: multi line string object (shapely)
     
     """
     # First shape 
     for line in list(geom1):
         x, y = line.coords.xy
         ax1.plot(x, y)
-        ax1.set_title('Original linestrings')
+        ax1.set_title('Original linestring 1')
     geomM1 = tomultpolygon(geom1)
     if geomM1.geom_type == 'Polygon':
         x1, y1 = geomM1.exterior.xy
         ax2.plot(x1, y1)
-        ax2.set_title('Multi polygon')
+        ax2.set_title('Multi polygon 1')
     else: # in case of multiple polygons 
         for poly in geomM1:
             x1, y1 = poly.exterior.xy
             ax2.plot(x1, y1)
-            ax2.set_title('Multi polygon')
+            ax2.set_title('Multi polygon 1')
     
     # Second shape 
     for line in list(geom2):
         x, y = line.coords.xy
         ax3.plot(x, y)
-        ax3.set_title('Original linestrings')
+        ax3.set_title('Original linestring 2 ')
     geomM2 = tomultpolygon(geom2)
     if geomM2.geom_type == 'Polygon':
         x1, y1 = geomM2.exterior.xy
         ax4.plot(x1, y1)
-        ax4.set_title('Multi polygon')
+        ax4.set_title('Multi polygon 2')
     else: # in case of multiple polygons 
         for poly in geomM2:
             x1, y1 = poly.exterior.xy
             ax4.plot(x1, y1)
-            ax4.set_title('Multi polygon')
+            ax4.set_title('Multi polygon 2')
+
+    # Transformed shape 1
+    for line in list(transformed1):
+        x, y = line.coords.xy
+        ax5.plot(x, y)
+        ax5.set_title('Transformed shape 1')
+    trfrmd1 = tomultpolygon(transformed1)
+    if trfrmd1.geom_type == 'Polygon':
+        x1, y1 = trfrmd1.exterior.xy
+        ax6.plot(x1, y1)
+        ax6.set_title('Multi polygon transformed 1')
+    else: # in case of multiple polygons 
+        for poly in trfrmd1:
+            x1, y1 = poly.exterior.xy
+            ax6.plot(x1, y1)
+            ax6.set_title('Multi polygon transformed 1')
+
+
+    # Transformed shape 2
+    for line in list(transformed2):
+        x, y = line.coords.xy
+        ax7.plot(x, y)
+        ax7.set_title('Transformed shape 2')
+
+    trfrmd2 = tomultpolygon(transformed2)
+    if trfrmd2.geom_type == 'Polygon':
+        x1, y1 = trfrmd2.exterior.xy
+        ax8.plot(x1, y1)
+        ax8.set_title('Multi polygon transformed 2')
+    else: # in case of multiple polygons 
+        for poly in trfrmd2:
+            x1, y1 = poly.exterior.xy
+            ax8.plot(x1, y1)
+            ax8.set_title('Multi polygon transformed 2')
+
 
 
 def plot_transforms (ax1,ax2,ax3,ax4,ax5, mltline, colorMain='red', colorMRR='green'):

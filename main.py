@@ -35,10 +35,11 @@ for file in onlyfiles[:]: #13 14 ,
         continue
 
     print('group name: ', mulitLine[1])
-
+    # 9 10, 11 12 , 23 24, 1 46, 2 50, 2 58  --- 46:valve
     #..................... Create Figures ...................................
     #fig, ((ax1, ax2, ax3), (ax4, ax5, ax6)) = plt.subplots(nrows=2, ncols=3)
-    figComp , ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows=2, ncols=2)
+    figComp , ((ax1, ax2, ax3, ax4), (ax5, ax6, ax7, ax8)) = plt.subplots(nrows=2, ncols=4)
+    plt.rc('font', size=5)     
     #fig.suptitle(str( mulitLine[1])+ ' ' + 'Element Transformation')
 
 
@@ -48,36 +49,40 @@ for file in onlyfiles[:]: #13 14 ,
     
     count+=1 
 
-    if count > 8:
+    if count > 46:
         
         # Transfrom the shapes 
-        shapeId1 = 1
-        shapeId2 = 2
+        shapeId1 = 0
+        shapeId2 = 44
+        
+        # Transform (Translate -> Rotate -> Scale )
         trsfmdGeom1 = transform(listOfMult[shapeId1])
         trsfmdGeom2 =transform(listOfMult[shapeId2])
+
+        # Convert to multipolygon object 
         trsfmdGeom1P = tomultpolygon(trsfmdGeom1)
         trsfmdGeom2P = tomultpolygon(trsfmdGeom2)
 
         # Find the similarity between the two shapes. If you want to test with polygons and IOU, pass polygon= 1
         # IF you want to test the similarity with the original line string objects, pass polygon= 0
-        dist, isSim = similarity(trsfmdGeom1P, trsfmdGeom2P, polygon=1)
+        overlap, isSim = similarity(trsfmdGeom1P, trsfmdGeom2P, polygon=1)
+        dist, isSim = similarity(trsfmdGeom1P, trsfmdGeom2P, polygon=0)
 
        
 
-        if isSim == 1: 
-            figComp.suptitle('The shapes are similar' + ' , ' + 'overlap:' + str(dist))
+        if isSim == 1:
+            figComp.suptitle('The shapes are similar' + ' , ' + 'Overlap: ' + str(overlap) + ', ' + 'Distance: ' + str(dist))
         else: 
-            figComp.suptitle('The shapes are not similar' + ', ' + 'overlap:' + str(dist))
+            figComp.suptitle('The shapes are not similar' + ', ' + 'Overlap:' + str(overlap)  + ', ' + 'Distance: ' + str(dist))
 
          # Plot comparision between the line string shape and their polygon representation
-        plots.plot_comparison(listOfMult[shapeId1], listOfMult[shapeId2], ax1,ax2, ax3, ax4)
+        plots.plot_comparison(listOfMult[shapeId1], listOfMult[shapeId2], trsfmdGeom1,trsfmdGeom2, ax1,ax2, ax3, ax4, ax5, ax6, ax7, ax8)
+
         plt.show()
-
-
         break
 
-    #scaled = plots.plot_transforms(ax1,ax2,ax3,ax4,ax5, mulitLine[0])
-    #plt.show()
+    # scaled = plots.plot_transforms(ax1,ax2,ax3,ax4,ax5, mulitLine[0])
+    # plt.show()
 
 
     

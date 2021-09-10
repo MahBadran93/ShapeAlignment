@@ -176,7 +176,7 @@ def similarity (geom1, geom2, polygon = 0):
         intxGeom = geom1.intersection (geom2)
         uninGeom = geom1.union (geom2)
         overlap = intxGeom.area / uninGeom.area
-        #overlap = 0.5 * (intxGeom.area/poly1.area + intxGeom.area/poly2.area)
+        #overlap = 0.5 * (intxGeom.area/geom1.area + intxGeom.area/geom2.area)
         if overlap > oThreshold:
             similar = 1
         return overlap, similar
