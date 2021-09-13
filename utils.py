@@ -86,6 +86,7 @@ def rotateRef (geom, baseV=(1, 0), polygon = 0):
         print('shape is symmetric...')
         centroid = center(geom)
         centerMRR = center(geom.envelope)
+        #baseV = Point((centerMRR[0], centerMRR[1]))
         #print('centroid',centroid, 'centermrr', centerMRR)
 
         # Find width and height of the minimal rotated rectangle object 
@@ -107,31 +108,26 @@ def rotateRef (geom, baseV=(1, 0), polygon = 0):
         centroid = center(geom)
         centermrr = center(geom.envelope)
         #print('centroid',centroid, 'centermrr', centermrr)
-
         # Find the angle of rotation 
-        if centroid == (0, 0):
-            rotAngle = 0
-        else:
-            # Using cross product 
-            dotP = (centroid[0] * baseV[0]) + (centroid[1] * baseV[1]) 
-            normCntrd = np.sqrt(centroid[0]**2 + centroid[1]**2)
-            normBaseV = np.sqrt(baseV[0]**2 + baseV[1]**2)
-            val = dotP / (normCntrd * normBaseV)
-            angle = math.acos(val)
-            angle = math.degrees(angle)
-            
-            print(centroid)
 
-            centroid = np.array(centroid)
-            centroid = np.round(centroid, 2)
+        # Using cross product to find the angle between the centroid and the x axis 
+        dotP = (centroid[0] * baseV[0]) + (centroid[1] * baseV[1]) 
+        normCntrd = np.sqrt(centroid[0]**2 + centroid[1]**2)
+        normBaseV = np.sqrt(baseV[0]**2 + baseV[1]**2)
+        val = dotP / (normCntrd * normBaseV)
+        angle = math.acos(val)
+        angle = math.degrees(angle)
+        
 
-            print(centroid)
-            if centroid[1] >= 0:
-                rotAngle = 270.0 - angle
-            elif centroid[1] <= 0 and centroid[0] <= 0:
-                rotAngle = 90 - angle #(270.0 + angle) - 360.0
-            elif centroid[1] <= 0 and centroid[0] >= 0:
-                rotAngle = -(90 - angle) #-(270.0 + (180.0 - angle))
+        # centroid = np.array(centroid)
+        # centroid = np.round(centroid, 2)
+
+        if centroid[1] >= 0:
+            rotAngle = 270.0 - angle
+        elif centroid[1] <= 0 and centroid[0] <= 0:
+            rotAngle = 90 - angle #(270.0 + angle) - 360.0
+        elif centroid[1] <= 0 and centroid[0] >= 0:
+            rotAngle = -(90 - angle) #-(270.0 + (180.0 - angle))
 
         rotGeom = aff.rotate(geom, rotAngle)
 
@@ -172,12 +168,12 @@ def similarity (geom1, geom2, polygon = 0):
     similar = 0
 
     if polygon:
-        oThreshold = 0.90
+        oThreshold = 0.90 #0.90
         intxGeom = geom1.intersection (geom2)
         uninGeom = geom1.union (geom2)
-        overlap = intxGeom.area / uninGeom.area
-        #overlap = 0.5 * (intxGeom.area/geom1.area + intxGeom.area/geom2.area)
-        if overlap > oThreshold:
+        #overlap = intxGeom.area / uninGeom.area
+        overlap = 0.5 * (intxGeom.area/geom1.area + intxGeom.area/geom2.area)
+        if overlap > oThreshold: #overlap > oThreshold:
             similar = 1
         return overlap, similar
     else:

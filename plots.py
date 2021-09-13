@@ -2,26 +2,36 @@ from matplotlib import pyplot
 from shapely.geometry import LineString, Polygon, Point
 from utils import translateToOrig, rotateRef, scale, symreco, tomultpolygon
 import  shapely.affinity as aff 
+import matplotlib.pyplot as plt
 
 
 
 # xs = [x[0] for x in points]
 # ys = [x[1] for x in points] 
 
-def plot_comparison (geom1, geom2, transformed1, transformed2, ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8):
+def plot_comparison (geom1, geom2, transformed1, transformed2):
+
     """
     Plots original multiple lines object compared to their corresponding polygons
     Input:
         - geom1: multi line string object (shapely)
         - geom2: multi line string object (shapely)
+        - transformed1: transformed multi line string object (shapely)
+        - transformed2: transformed multi line string object (shapely)
     
     """
+
+    # Figure 
+    figComp , ((ax1, ax2, ax3, ax4), (ax5, ax6, ax7, ax8)) = plt.subplots(nrows=2, ncols=4)
+    plt.rc('font', size=5)     
+
     # First shape 
     for line in list(geom1):
         x, y = line.coords.xy
         ax1.plot(x, y)
         ax1.set_title('Original linestring 1')
     geomM1 = tomultpolygon(geom1)
+
     if geomM1.geom_type == 'Polygon':
         x1, y1 = geomM1.exterior.xy
         ax2.plot(x1, y1)
@@ -81,7 +91,7 @@ def plot_comparison (geom1, geom2, transformed1, transformed2, ax1, ax2, ax3, ax
             x1, y1 = poly.exterior.xy
             ax8.plot(x1, y1)
             ax8.set_title('Multi polygon transformed 2')
-
+    plt.show()
 
 
 def plot_transforms (ax1,ax2,ax3,ax4,ax5, mltline, colorMain='red', colorMRR='green'):
