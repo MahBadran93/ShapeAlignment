@@ -38,6 +38,7 @@ for j in range(len(listOfGeom)):
     trsfmdGeom2P = tomultpolygon(trsfmdGeom2)
     dist, isSim = similarity(trsfmdGeom1P, trsfmdGeom2P, polygon=1)
     if isSim == 1:
+        print('isSym: ', isSim)
         testGroup.append((listOfGeom[j][0], listOfGeom[j][1]))
 
 print('length: ', len(testGroup))

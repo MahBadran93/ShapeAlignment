@@ -20,7 +20,7 @@ for file in onlyfiles[:]:
             continue
     listOfGeom.append((mulitLine[0],mulitLine[1]))
 
-
+# Here check why 2660001 item is not proporely found with similarity 
 filtered_shapes = [shape for shape in listOfGeom if shape[1] == '266001'] #P0081, 266001, P0001
 print(len(filtered_shapes))
 
